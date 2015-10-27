@@ -790,7 +790,8 @@ int main(int argc, char *argv[]) {
 		s = newstring(s);
 		//printf("%s\n",s);
 		answer = infix(s);
-		doubletostring(answer, ans);
+		if(ob == 10) 
+			doubletostring(answer, ans);
 		printf("\n");
 		if(ob != 10) {
 			outputbase(answer, ans, ob);
@@ -805,33 +806,60 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 void filehandling(char *inputfile) {			//takes infix expression from a file
-	int ip, x;
+	int ip, x, check = 0;
 	char c[128];
 	double y;
 	char *s;
 	ip = open(inputfile, O_RDONLY | O_CREAT); 
-	int i;
+	int k;
+	s = c;
 		while(1) {
-			i = 0;
-			x = read(ip, &c[i], sizeof(char));
+			k = 0;
+			x = read(ip, &c[k], sizeof(char));
 			if(x == -1) {
 				printf("error\n");
 			}
 			if(x == 0) {
-				c[i] = '\0';
+				c[k] = '\0';
 				break;
 			}
 			while(1) {
-				i++;
-				x = read(ip, &c[i], sizeof(char));
-				if(c[i] == '\n'|| x == 0) {
-					c[i] = '\0';
+				k++;
+				x = read(ip, &c[k], sizeof(char));
+				if(c[k] == '\n'|| x == 0) {
+					c[k] = '\0';
 					break;
 				}
 			}
+			if(check == 2) {
+				if(i != -1) {
+					s = stringreplace(s, (&v)->varname[0], (&v)->varvalue[0]);
+					for(x = 1; x <= i; x++) 
+						s = stringreplace(s, (&v)->varname[x], (&v)->varvalue[x]);
+				}
+				check = 0;
+			}
+			if(check == 1) {
+				varassignment(&v, s);
+				check = 2;
+				continue;
+			}
+			if(s[0] == 'a') {
+				check = 1;
+				continue;
+			}
 			s = newstring(c);
 			y = infix(s);
-			printf("%.15lf\n", y);
+			if(ob == 10) {
+				doubletostring(y, ans);
+				printf("%s\n", ans);
+			}
+			else {
+				outputbase(y, ans, ob);
+				printf("(%s)%d", ans, ob);
+			}
+			//printf("%.15lf\n", y);
+			
 		}
 	close(ip);
 }
@@ -943,7 +971,7 @@ double inputbase(charstack *s, charqueue *q, int base) {		//converts a number of
 }
 				
 void outputbase(double a, char *str, int base) {
-	int x, y, i;
+	int x, y, i, sign = 0;
 	long int k;
 	char c;
 	double d;
@@ -951,6 +979,10 @@ void outputbase(double a, char *str, int base) {
 	charqueue q;
 	initc(&s);
 	qinit(&q);
+	if(a < 0) {
+		a = -1 * a;
+		sign = 1;
+	}
 	x = (int)(a);
 	while(x != 0) {
 		y = x % base;
@@ -963,6 +995,8 @@ void outputbase(double a, char *str, int base) {
 		pushc(&s, c);
 		x = x / base;
 	}
+	if(sign == 1) 
+		pushc(&s, '-');
 	a = a - (int)(a);
 	d = a;
 	for(i = 0; i < 15; i++) {
